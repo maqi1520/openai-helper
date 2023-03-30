@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { OpenAIStream, OpenAIStreamPayload } from "../../utils/OpenAIStream";
+import { OpenAIStream, OpenAIStreamPayload,ChatGPTMessage } from "../../utils/OpenAIStream";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing env var from OpenAI");
@@ -10,18 +10,18 @@ export const config = {
 };
 
 const handler = async (req: NextRequest): Promise<Response> => {
-  const { prompt } = (await req.json()) as {
-    prompt?: string;
+  const { messages } = (await req.json()) as {
+    messages: ChatGPTMessage[];
   };
 
-  if (!prompt) {
-    return new Response("No prompt in the request", { status: 400 });
+  if (!messages) {
+    return new Response("No messages in the request", { status: 400 });
   }
 
   const payload: OpenAIStreamPayload = {
     // model: "text-davinci-003",
     model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: prompt }],
+    messages,
     temperature: 0.7,
     top_p: 1,
     frequency_penalty: 0,
