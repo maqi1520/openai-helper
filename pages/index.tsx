@@ -19,11 +19,8 @@ const Home: NextPage = () => {
 
   const messages=[
     {role:'system',content:'你是一名精通 Tailwind CSS 的前端工程师'},
-    {role:'user',content:'使用 Tailwind CSS 写一个按钮，主色是蓝色。注意：只需要返回 Markdown，不需要解释'},
-    {role:'assistant',content:`\`\`\`html
-<button class="px-3 py-1 bg-blue-500 text-white rounded">按钮</button>
-\`\`\`
-`},
+    {role:'user',content:'使用 Tailwind css 写一个按钮，只需要返回 Html 代码，不需要解释'},
+    {role:'assistant',content:`<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">点我</button>`},
   {role:'user',content:`${text}，主色是${primaryColor}`},
   ]
   
