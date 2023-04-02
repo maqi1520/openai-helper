@@ -20,17 +20,20 @@ type InjectContent = {
 const DEFAULT_RESPONSIVE_SIZE = { width: 540, height: 720 };
 
 const Home: NextPage = () => {
-  const worker = useRef();
-  const previewRef = useRef();
+  const worker = useRef<Worker>();
+  const previewRef = useRef<HTMLIFrameElement>(null);
   const [resizing, setResizing] = useState(false);
   const [responsiveDesignMode, setResponsiveDesignMode] = useState(false);
-  const [responsiveSize, setResponsiveSize] = useState(DEFAULT_RESPONSIVE_SIZE);
+  const [responsiveSize, setResponsiveSize] = useState<{
+    width: number;
+    height: number;
+  }>(DEFAULT_RESPONSIVE_SIZE);
   useEffect(() => {
     worker.current = new Worker(
       new URL("../utils/postcss.worker.js", import.meta.url)
     );
     return () => {
-      worker.current.terminate();
+      worker.current?.terminate();
     };
   }, []);
 
@@ -56,7 +59,7 @@ const Home: NextPage = () => {
   ];
 
   const inject = useCallback(async (content: InjectContent) => {
-    previewRef.current.contentWindow.postMessage(content, "*");
+    previewRef.current?.contentWindow?.postMessage(content, "*");
   }, []);
 
   const compile = async () => {

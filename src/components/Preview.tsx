@@ -1,213 +1,241 @@
-import { forwardRef, useEffect, useState, useRef } from 'react'
-import { useIsomorphicLayoutEffect } from '../hooks/useIsomorphicLayoutEffect'
-import clsx from 'clsx'
-import { getPointerPosition } from '../utils/getPointerPosition'
+/* eslint-disable react/display-name */
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
+import { useIsomorphicLayoutEffect } from "../hooks/useIsomorphicLayoutEffect";
+import clsx from "clsx";
+import { getPointerPosition } from "../utils/getPointerPosition";
 
-export const Preview = forwardRef(
+interface Props {
+  responsiveDesignMode: boolean;
+  responsiveSize: {
+    width: number;
+    height: number;
+  };
+  onChangeResponsiveSize: Dispatch<
+    SetStateAction<{
+      width: number;
+      height: number;
+    }>
+  >;
+  onLoad?: () => void;
+  iframeClassName?: string;
+}
+export type Ref = HTMLIFrameElement;
+
+export const Preview = forwardRef<Ref, Props>(
   (
     {
       responsiveDesignMode,
       responsiveSize,
       onChangeResponsiveSize,
       onLoad,
-      iframeClassName = '',
+      iframeClassName = "",
     },
     ref
   ) => {
-    const containerRef = useRef()
-    const [size, setSize] = useState({ width: 0, height: 0 })
-    const [resizing, setResizing] = useState()
-    const timeout = useRef()
+    const observerRef = useRef<ResizeObserver>();
+    const containerRef = useRef<HTMLDivElement>(null!);
+    const [size, setSize] = useState({ width: 0, height: 0, visible: false });
+    const [resizing, setResizing] = useState<any>();
+    const timeout = useRef<number>();
     const constrainedResponsiveSize = constrainSize(
       responsiveSize.width,
       responsiveSize.height
-    )
+    );
 
-    function constrainWidth(desiredWidth) {
+    function constrainWidth(desiredWidth: number) {
       const zoom =
-        desiredWidth > size.width - 34 ? (size.width - 34) / desiredWidth : 1
+        desiredWidth > size.width - 34 ? (size.width - 34) / desiredWidth : 1;
       return {
         width: Math.min(
           Math.max(50, Math.round(desiredWidth * (1 / zoom))),
           Math.round((size.width - 34) * (1 / zoom))
         ),
         zoom,
-      }
+      };
     }
 
-    function constrainHeight(desiredHeight) {
+    function constrainHeight(desiredHeight: number) {
       const zoom =
         desiredHeight > size.height - 17 - 40
           ? (size.height - 17 - 40) / desiredHeight
-          : 1
+          : 1;
       return {
         height: Math.min(
           Math.max(50, Math.round(desiredHeight * (1 / zoom))),
           Math.round((size.height - 17 - 40) * (1 / zoom))
         ),
         zoom,
-      }
+      };
     }
 
-    function constrainSize(desiredWidth, desiredHeight) {
-      const { width, zoom: widthZoom } = constrainWidth(desiredWidth)
-      const { height, zoom: heightZoom } = constrainHeight(desiredHeight)
+    function constrainSize(desiredWidth: number, desiredHeight: number) {
+      const { width, zoom: widthZoom } = constrainWidth(desiredWidth);
+      const { height, zoom: heightZoom } = constrainHeight(desiredHeight);
       return {
         width,
         height,
         zoom: Math.min(widthZoom, heightZoom),
-      }
+      };
     }
 
     useEffect(() => {
-      let isInitial = true
-      const observer = new ResizeObserver(() => {
-        window.clearTimeout(timeout.current)
-        const rect = containerRef.current.getBoundingClientRect()
-        const width = Math.round(rect.width)
-        const height = Math.round(rect.height)
+      let isInitial = true;
+      observerRef.current = new ResizeObserver(() => {
+        window.clearTimeout(timeout.current);
+        const rect = containerRef.current.getBoundingClientRect();
+        const width = Math.round(rect.width);
+        const height = Math.round(rect.height);
         setSize({
           visible: !isInitial && width !== 0 && height !== 0,
           width,
           height,
-        })
+        });
         timeout.current = window.setTimeout(() => {
-          setSize((size) => ({ ...size, visible: false }))
-        }, 1000)
-        isInitial = false
-      })
-      observer.observe(containerRef.current)
+          setSize((size) => ({ ...size, visible: false }));
+        }, 1000);
+        isInitial = false;
+      });
+
+      observerRef.current.observe(containerRef.current);
+
       return () => {
-        observer.disconnect()
-      }
-    }, [])
+        observerRef.current?.disconnect();
+      };
+    }, []);
 
     useIsomorphicLayoutEffect(() => {
       if (size.width > 50 && size.height > 50) {
-        onChangeResponsiveSize(({ width, height }) => ({ width, height }))
+        onChangeResponsiveSize(({ width, height }) => ({ width, height }));
       }
 
       if (resizing) {
-        function onMouseMove(e) {
-          e.preventDefault()
-          const { x, y } = getPointerPosition(e)
-          if (resizing.handle === 'bottom') {
-            document.body.classList.add('cursor-ns-resize')
+        const onMouseMove = (e: TouchEvent | MouseEvent) => {
+          e.preventDefault();
+          const { x, y } = getPointerPosition(e);
+          if (resizing.handle === "bottom") {
+            document.body.classList.add("cursor-ns-resize");
             onChangeResponsiveSize(({ width }) => ({
               width,
               height: resizing.startHeight + (y - resizing.startY),
-            }))
-          } else if (resizing.handle === 'left') {
-            document.body.classList.add('cursor-ew-resize')
+            }));
+          } else if (resizing.handle === "left") {
+            document.body.classList.add("cursor-ew-resize");
             onChangeResponsiveSize(({ height }) => ({
               width: resizing.startWidth - (x - resizing.startX) * 2,
               height,
-            }))
-          } else if (resizing.handle === 'right') {
-            document.body.classList.add('cursor-ew-resize')
+            }));
+          } else if (resizing.handle === "right") {
+            document.body.classList.add("cursor-ew-resize");
             onChangeResponsiveSize(({ height }) => ({
               width: resizing.startWidth + (x - resizing.startX) * 2,
               height,
-            }))
-          } else if (resizing.handle === 'bottom-left') {
-            document.body.classList.add('cursor-nesw-resize')
+            }));
+          } else if (resizing.handle === "bottom-left") {
+            document.body.classList.add("cursor-nesw-resize");
             onChangeResponsiveSize(() => ({
               width: resizing.startWidth - (x - resizing.startX) * 2,
               height: resizing.startHeight + (y - resizing.startY),
-            }))
-          } else if (resizing.handle === 'bottom-right') {
-            document.body.classList.add('cursor-nwse-resize')
+            }));
+          } else if (resizing.handle === "bottom-right") {
+            document.body.classList.add("cursor-nwse-resize");
             onChangeResponsiveSize(() => ({
               width: resizing.startWidth + (x - resizing.startX) * 2,
               height: resizing.startHeight + (y - resizing.startY),
-            }))
+            }));
           }
-        }
-        function onMouseUp(e) {
-          e.preventDefault()
-          if (resizing.handle === 'bottom') {
-            document.body.classList.remove('cursor-ns-resize')
-          } else if (resizing.handle === 'left') {
-            document.body.classList.remove('cursor-ew-resize')
-          } else if (resizing.handle === 'right') {
-            document.body.classList.remove('cursor-ew-resize')
-          } else if (resizing.handle === 'bottom-left') {
-            document.body.classList.remove('cursor-nesw-resize')
-          } else if (resizing.handle === 'bottom-right') {
-            document.body.classList.remove('cursor-nwse-resize')
+        };
+        const onMouseUp = (e: MouseEvent | TouchEvent) => {
+          e.preventDefault();
+          if (resizing.handle === "bottom") {
+            document.body.classList.remove("cursor-ns-resize");
+          } else if (resizing.handle === "left") {
+            document.body.classList.remove("cursor-ew-resize");
+          } else if (resizing.handle === "right") {
+            document.body.classList.remove("cursor-ew-resize");
+          } else if (resizing.handle === "bottom-left") {
+            document.body.classList.remove("cursor-nesw-resize");
+          } else if (resizing.handle === "bottom-right") {
+            document.body.classList.remove("cursor-nwse-resize");
           }
-          setResizing()
-        }
-        window.addEventListener('mousemove', onMouseMove)
-        window.addEventListener('mouseup', onMouseUp)
-        window.addEventListener('touchmove', onMouseMove)
-        window.addEventListener('touchend', onMouseUp)
+          setResizing(undefined);
+        };
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
+        window.addEventListener("touchmove", onMouseMove);
+        window.addEventListener("touchend", onMouseUp);
         return () => {
-          window.removeEventListener('mousemove', onMouseMove)
-          window.removeEventListener('mouseup', onMouseUp)
-          window.removeEventListener('touchmove', onMouseMove)
-          window.removeEventListener('touchend', onMouseUp)
-        }
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", onMouseUp);
+          window.removeEventListener("touchmove", onMouseMove);
+          window.removeEventListener("touchend", onMouseUp);
+        };
       }
-    }, [resizing, size])
+    }, [resizing, size]);
 
-    function startLeft(e) {
-      const pos = getPointerPosition(e)
-      if (pos === null) return
-      e.preventDefault()
+    function startLeft(e: any) {
+      const pos = getPointerPosition(e);
+      if (pos === null) return;
+      e.preventDefault();
       setResizing({
-        handle: 'left',
+        handle: "left",
         startWidth: constrainedResponsiveSize.width,
         startX: pos.x,
-      })
+      });
     }
 
-    function startRight(e) {
-      const pos = getPointerPosition(e)
-      if (pos === null) return
-      e.preventDefault()
+    function startRight(e: any) {
+      const pos = getPointerPosition(e);
+      if (pos === null) return;
+      e.preventDefault();
       setResizing({
-        handle: 'right',
+        handle: "right",
         startWidth: constrainedResponsiveSize.width,
         startX: pos.x,
-      })
+      });
     }
 
-    function startBottomLeft(e) {
-      const pos = getPointerPosition(e)
-      if (pos === null) return
-      e.preventDefault()
+    function startBottomLeft(e: any) {
+      const pos = getPointerPosition(e);
+      if (pos === null) return;
+      e.preventDefault();
       setResizing({
-        handle: 'bottom-left',
-        startWidth: constrainedResponsiveSize.width,
-        startHeight: constrainedResponsiveSize.height,
-        startX: pos.x,
-        startY: pos.y,
-      })
-    }
-
-    function startBottom(e) {
-      const pos = getPointerPosition(e)
-      if (pos === null) return
-      e.preventDefault()
-      setResizing({
-        handle: 'bottom',
-        startHeight: constrainedResponsiveSize.height,
-        startY: pos.y,
-      })
-    }
-
-    function startBottomRight(e) {
-      const pos = getPointerPosition(e)
-      if (pos === null) return
-      e.preventDefault()
-      setResizing({
-        handle: 'bottom-right',
+        handle: "bottom-left",
         startWidth: constrainedResponsiveSize.width,
         startHeight: constrainedResponsiveSize.height,
         startX: pos.x,
         startY: pos.y,
-      })
+      });
+    }
+
+    function startBottom(e: any) {
+      const pos = getPointerPosition(e);
+      if (pos === null) return;
+      e.preventDefault();
+      setResizing({
+        handle: "bottom",
+        startHeight: constrainedResponsiveSize.height,
+        startY: pos.y,
+      });
+    }
+
+    function startBottomRight(e: any) {
+      const pos = getPointerPosition(e);
+      if (pos === null) return;
+      e.preventDefault();
+      setResizing({
+        handle: "bottom-right",
+        startWidth: constrainedResponsiveSize.width,
+        startHeight: constrainedResponsiveSize.height,
+        startX: pos.x,
+        startY: pos.y,
+      });
     }
 
     return (
@@ -218,9 +246,9 @@ export const Preview = forwardRef(
         {responsiveDesignMode && (
           <div className="flex-none text-center text-xs leading-4 tabular-nums whitespace-pre py-3 text-gray-900 dark:text-gray-400">
             {constrainedResponsiveSize.width}
-            {'  '}×{'  '}
+            {"  "}×{"  "}
             {constrainedResponsiveSize.height}
-            {'  '}
+            {"  "}
             <span className="text-gray-500">
               ({Math.round(constrainedResponsiveSize.zoom * 100)}
               %)
@@ -232,10 +260,10 @@ export const Preview = forwardRef(
           style={
             responsiveDesignMode
               ? {
-                  gridTemplateColumns: '1.0625rem min-content 1.0625rem',
-                  gridTemplateRows: 'min-content 1.0625rem',
+                  gridTemplateColumns: "1.0625rem min-content 1.0625rem",
+                  gridTemplateRows: "min-content 1.0625rem",
                 }
-              : { gridTemplateColumns: '100%' }
+              : { gridTemplateColumns: "100%" }
           }
         >
           {responsiveDesignMode && (
@@ -256,8 +284,9 @@ export const Preview = forwardRef(
             </div>
           )}
           <div
-            className={clsx('relative', {
-              'border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden': responsiveDesignMode,
+            className={clsx("relative", {
+              "border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden":
+                responsiveDesignMode,
             })}
             style={
               responsiveDesignMode
@@ -289,7 +318,7 @@ export const Preview = forwardRef(
                               constrainedResponsiveSize.zoom
                           )) /
                         -2,
-                      transformOrigin: 'top',
+                      transformOrigin: "top",
                       transform: `scale(${constrainedResponsiveSize.zoom})`,
                     }
                   : {}
@@ -297,9 +326,9 @@ export const Preview = forwardRef(
               onLoad={onLoad}
               className={clsx(
                 iframeClassName,
-                'absolute inset-0 w-full h-full bg-white',
+                "absolute inset-0 w-full h-full bg-white",
                 {
-                  'pointer-events-none select-none': resizing,
+                  "pointer-events-none select-none": resizing,
                 }
               )}
               sandbox="allow-popups-to-escape-sandbox allow-scripts allow-popups allow-forms allow-pointer-lock allow-top-navigation allow-modals"
@@ -452,11 +481,11 @@ export const Preview = forwardRef(
         {!responsiveDesignMode && size.visible && (
           <div className="absolute top-4 right-4 rounded-full h-6 flex items-center text-xs leading-4 whitespace-pre px-3 tabular-nums bg-white border border-gray-300 shadow dark:bg-gray-700 dark:border-transparent">
             {size.width}
-            {'  '}×{'  '}
+            {"  "}×{"  "}
             {size.height}
           </div>
         )}
       </div>
-    )
+    );
   }
-)
+);
