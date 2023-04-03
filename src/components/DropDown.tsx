@@ -11,18 +11,21 @@ function classNames(...classes: string[]) {
 }
 
 const vibes = [
-  "blue",
-  "indigo",
-  "yellow",
-  "red",
-  "purple"
+  { name: "无", code: "" },
+  { name: "灰色", code: "gray" },
+  { name: "红色", code: "red" },
+  { name: "黄色", code: "yellow" },
+  { name: "绿色", code: "green" },
+  { name: "蓝色", code: "blue" },
+  { name: "紫色", code: "purple" },
+  { name: "粉色", code: "pink" },
+  { name: "橙色", code: "orange" },
+  { name: "青色", code: "teal" },
 ] as const;
 
-export type ValueType = typeof vibes[number];
-
 interface DropDownProps {
-  value: ValueType;
-  onChange: (value: ValueType) => void;
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export default function DropDown({ value, onChange }: DropDownProps) {
@@ -30,7 +33,7 @@ export default function DropDown({ value, onChange }: DropDownProps) {
     <Menu as="div" className="relative block text-left w-full">
       <div>
         <Menu.Button className="inline-flex w-full justify-between items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black">
-          {value}
+          <span>{value}</span>
           <ChevronUpIcon
             className="-mr-1 ml-2 h-5 w-5 ui-open:hidden"
             aria-hidden="true"
@@ -57,18 +60,18 @@ export default function DropDown({ value, onChange }: DropDownProps) {
         >
           <div className="">
             {vibes.map((item) => (
-              <Menu.Item key={item}>
+              <Menu.Item key={item.code}>
                 {({ active }) => (
                   <button
-                    onClick={() => onChange(item)}
+                    onClick={() => onChange(item.code)}
                     className={classNames(
                       active ? "bg-gray-100 text-gray-900" : "text-gray-700",
-                      value === item ? "bg-gray-200" : "",
+                      value === item.code ? "bg-gray-200" : "",
                       "px-4 py-2 text-sm w-full text-left flex items-center space-x-2 justify-between"
                     )}
                   >
-                    <span>{item}</span>
-                    {value === item ? (
+                    <span>{item.name}</span>
+                    {value === item.code ? (
                       <CheckIcon className="w-4 h-4 text-bold" />
                     ) : null}
                   </button>

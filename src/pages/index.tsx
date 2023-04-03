@@ -4,7 +4,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import DropDown, { ValueType } from "../components/DropDown";
+import DropDown from "../components/DropDown";
 import Footer from "../components/Footer";
 import ResizableTag from "../components/ResizableTag";
 import LoadingDots from "../components/LoadingDots";
@@ -18,6 +18,29 @@ type InjectContent = {
 };
 
 const DEFAULT_RESPONSIVE_SIZE = { width: 540, height: 720 };
+
+const tags = [
+  { name: "按钮", code: "button" },
+  { name: "输入框", code: "input" },
+  { name: "下拉列表", code: "select" },
+  { name: "复选框", code: "checkbox" },
+  { name: "单选框", code: "radio-button" },
+  { name: "标签页", code: "tabs" },
+  { name: "弹出框", code: "modal" },
+  { name: "菜单", code: "menu" },
+  { name: "进度条", code: "progress-bar" },
+  { name: "图片轮播", code: "image-slider" },
+  { name: "图片放大器", code: "image-zoom" },
+  { name: "日历", code: "calendar" },
+  { name: "表格", code: "table" },
+  { name: "分页", code: "pagination" },
+  { name: "标签", code: "tag" },
+  { name: "树形控件", code: "tree-view" },
+  { name: "图表", code: "chart" },
+  { name: "列表", code: "list" },
+  { name: "瀑布流", code: "masonry" },
+  { name: "文字滚动", code: "marquee" },
+];
 
 const Home: NextPage = () => {
   const worker = useRef<Worker>();
@@ -40,7 +63,7 @@ const Home: NextPage = () => {
 
   const [loading, setLoading] = useState(false);
   const [desc, setDesc] = useState("");
-  const [primaryColor, setPrimaryColor] = useState<ValueType>("blue");
+  const [primaryColor, setPrimaryColor] = useState<string>("");
   const [generatedDesc, setGeneratedDesc] = useState<string>("");
   const defaultDesc = "一个登录页面包括（邮箱、密码）";
   let text = desc || defaultDesc;
@@ -62,7 +85,9 @@ const Home: NextPage = () => {
     },
     {
       role: "user",
-      content: `${text}，主色是${primaryColor}。${noExplanation}`,
+      content: `${text}，${
+        primaryColor ? `主色是${primaryColor}，` : ""
+      }${noExplanation}`,
     },
   ];
 
@@ -147,6 +172,19 @@ const Home: NextPage = () => {
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black my-2"
                 placeholder={"e.g. " + defaultDesc}
               />
+              <div className="grid grid-cols-4 gap-4 mb-5">
+                {tags.map((tag) => {
+                  return (
+                    <span
+                      key={tag.code}
+                      onClick={() => setDesc(tag.code)}
+                      className="bg-blue-100 text-blue-700 font-medium py-1 px-2 rounded cursor-pointer"
+                    >
+                      {tag.name}
+                    </span>
+                  );
+                })}
+              </div>
               <div className="flex mb-5 items-center space-x-3">
                 <Image src="/2-black.png" width={30} height={30} alt="1 icon" />
                 <p className="text-left font-medium">请选择主色.</p>
