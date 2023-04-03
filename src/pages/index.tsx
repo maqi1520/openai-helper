@@ -22,6 +22,7 @@ const DEFAULT_RESPONSIVE_SIZE = { width: 540, height: 720 };
 const Home: NextPage = () => {
   const worker = useRef<Worker>();
   const previewRef = useRef<HTMLIFrameElement>(null);
+  const refHtml = useRef<string>("");
   const [resizing, setResizing] = useState(false);
   const [responsiveDesignMode, setResponsiveDesignMode] = useState(false);
   const [responsiveSize, setResponsiveSize] = useState<{
@@ -44,27 +45,34 @@ const Home: NextPage = () => {
   const defaultDesc = "一个登录页面包括（邮箱、密码）";
   let text = desc || defaultDesc;
 
+  const noExplanation = `
+  只需要返回 html 代码，不需要解释`;
+
   const messages = [
     {
       role: "system",
-      content:
-        "你是一名精通 Tailwind CSS 的前端工程师，只需要返回 Html 代码，不需要解释",
+      content: "你是一名精通 Tailwind css 的前端工程师。" + noExplanation,
     },
-    { role: "user", content: "使用 Tailwind css 写一个按钮" },
+    { role: "user", content: "使用 Tailwind css 写一个按钮。" + noExplanation },
     {
       role: "assistant",
-      content: `<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">点我</button>`,
+      content: `<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      点我
+    </button>`,
     },
-    { role: "user", content: `${text}，主色是${primaryColor}` },
+    {
+      role: "user",
+      content: `${text}，主色是${primaryColor}。${noExplanation}`,
+    },
   ];
 
   const inject = useCallback(async (content: InjectContent) => {
     previewRef.current?.contentWindow?.postMessage(content, "*");
   }, []);
 
-  const compile = async () => {
+  const compile = async (html: string) => {
     const res = await requestResponse(worker.current, {
-      html: generatedDesc,
+      html,
     });
     inject(res);
   };
@@ -102,13 +110,16 @@ const Home: NextPage = () => {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
       const chunkValue = decoder.decode(value);
-      setGeneratedDesc((prev) => prev + chunkValue);
+      setGeneratedDesc((prev) => {
+        refHtml.current = prev + chunkValue;
+
+        return prev + chunkValue;
+      });
     }
 
     setLoading(false);
-    setTimeout(() => {
-      compile();
-    }, 0);
+
+    compile(refHtml.current);
   };
 
   return (
@@ -142,6 +153,19 @@ const Home: NextPage = () => {
               </div>
               <div className="block">
                 <DropDown value={primaryColor} onChange={setPrimaryColor} />
+              </div>
+
+              <div className="flex py-5">
+                <label className="flex items-center">
+                  <input
+                    checked={responsiveDesignMode}
+                    onChange={() =>
+                      setResponsiveDesignMode(!responsiveDesignMode)
+                    }
+                    type="checkbox"
+                  />
+                  <span className="ml-2">手机预览</span>
+                </label>
               </div>
 
               {!loading && (
