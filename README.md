@@ -1,13 +1,8 @@
-# [EmailHelper](https://email-helper.vercel.app/)
+# [Tailwind CSS code generator](https://openai.maqib.cn/)
 
-This project generates emails for you using AI.
+Tailwind CSS 代码生成器
 
-[![](./public/screenshot3.png)](https://email-helper.vercel.app/)
-
-## Support
-`English`, `Simplified Chinese`, `Traditional Chinese`, `Japanese`, `Italian`, `German`, `Spanish`,`French`,`Dutch` ,`Korean`,`Khmer`, `Hindi`
-
-PR welcome
+[![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7950bdddf1c04b50b5e3a9564c9eaf1c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp?)](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7950bdddf1c04b50b5e3a9564c9eaf1c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp?)
 
 ## How it works
 

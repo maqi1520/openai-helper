@@ -150,6 +150,9 @@ const Home: NextPage = () => {
 
   return (
     <div className="flex h-screen">
+      <Head>
+        <title>Tailwind CSS code generator</title>
+      </Head>
       <ResizableTag
         setResizing={setResizing}
         defaultWidth={400}
